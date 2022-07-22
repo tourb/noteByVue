@@ -19,7 +19,7 @@
                   <el-form-item label="用户名" prop="username">
                     <el-input type="text" v-model="register.username" autocomplete="off"></el-input>
                   </el-form-item>
-                  <el-form-item label="密码" prop="checkPass">
+                  <el-form-item label="密码" prop="password">
                     <el-input type="password" v-model="register.password" autocomplete="off"></el-input>
                   </el-form-item>
                   <p v-bind:class="{ error: register.isError }">{{ register.notice }}</p>
@@ -40,10 +40,10 @@
                   label-width="80px"
                   class="demo-ruleForm"
                 >
-                  <el-form-item label="用户名" prop="usernameLogin">
+                  <el-form-item label="用户名" prop="username">
                     <el-input type="text" v-model="login.username" autocomplete="off"></el-input>
                   </el-form-item>
-                  <el-form-item label="密码">
+                  <el-form-item label="密码" prop="password">
                     <el-input type="password" v-model="login.password" autocomplete="off"></el-input>
                   </el-form-item>
                   <p v-bind:class="{ error: login.isError }">{{ login.notice }}</p>
@@ -61,6 +61,7 @@
   </div>
 </template>
 <script>
+import request from '@/helpers/request.js'
 export default {
   name: 'Login',
   data () {
@@ -70,7 +71,7 @@ export default {
         return callback(new Error('用户名不能为空'))
       } else {
         setTimeout(() => {
-          if (!/^[a-zA-Z0-9_-]{4,16}$/.test(this.register.username)) {
+          if (!/^[a-zA-Z0-9_-]{4,16}$/.test(this.register.username || this.login.username)) {
             callback(new Error('必须是4-16位字母或数字'))
             this.register.isError = true
           } else {
@@ -86,7 +87,7 @@ export default {
         return callback(new Error('请输入密码'))
       } else {
         setTimeout(() => {
-          if (!/^\d{3,}$/.test(this.register.password)) {
+          if (!/^\d{3,}$/.test(this.register.password || this.login.password)) {
             callback(new Error('至少三位'))
             this.register.isError = true
           } else {
@@ -115,14 +116,15 @@ export default {
         username: [
           { validator: validateUsername, trigger: 'blur' }
         ],
-        checkPass: [
+        password: [
           { validator: validatePassword, trigger: 'blur' }
-        ],
-        usernameLogin: [
-          { required: true, message: '请输入活动名称', trigger: 'blur' }
         ]
+
       }
     }
+  },
+  async created () {
+
   },
   methods: {
     showLogin () {
@@ -134,15 +136,48 @@ export default {
       this.isShowRegister = true
     },
     submitForm (formName) {
-      this.$refs[formName].validate(valid => {
-        console.log(valid)
+      this.$refs[formName].validate(async (valid) => {
+        if (valid) {
+          try {
+            let res = await request.register({ username: this.register.username, password: this.register.password })
+            this.$message({
+              message: '注册成功',
+              type: 'success'
+            })
+            console.log(res)
+          } catch (err) {
+            console.log(err)
+          }
+        } else {
+          this.$message({
+            message: '登录失败',
+            type: 'error'
+          })
+          return false
+        }
       }
       )
     },
     submitFormLogin (formNameLogin) {
-      this.$refs[formNameLogin].validate(valid => {
-        console.log(2)
-        console.log(valid)
+      this.$refs[formNameLogin].validate(async (valid) => {
+        if (valid) {
+          try {
+            let res = await request.login({ username: this.login.username, password: this.login.password })
+            this.$message({
+              message: '登录成功',
+              type: 'success'
+            })
+            console.log(res)
+          } catch (err) {
+            console.log(err)
+          }
+        } else {
+          this.$message({
+            message: '登录失败',
+            type: 'error'
+          })
+          return false
+        }
       }
       )
     }
