@@ -2,7 +2,7 @@ import axios from 'axios'
 import { options } from 'less'
 import { Message } from 'element-ui'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-axios.defaults.baseURL = process.env.VUE_APP_BASE_API
+axios.defaults.baseURL = 'https://note-server.hunger-valley.com'
 axios.defaults.withCredentials = true // 跨域
 const URL = {
   // 用户注册POST
