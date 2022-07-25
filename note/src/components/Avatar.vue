@@ -1,16 +1,35 @@
 <template>
-  <span :title="user.username">{{ slug }}</span>
+  <span :title="username">{{ slug }}</span>
 </template>
 
 <script>
-
+import request from '@/helpers/request.js'
+import Bus from '@/helpers/bus.js'
 export default {
   data () {
     return {
-      user: {
-        username: 'hunger'
-      },
-      slug: 'H'
+      username: '未登录'
+    }
+  },
+  created () {
+    // 监听
+    Bus.$on('userInfo', user => {
+      this.username = user.username
+    })
+    this.getInfo()
+  },
+  computed: {
+    slug () {
+      return this.username.charAt(0)
+    }
+  },
+  methods: {
+    async getInfo () {
+      let res = await request.getInfo()
+      // console.log(res)
+      if (res.isLogin) {
+        this.username = res.data.username
+      }
     }
   }
 }

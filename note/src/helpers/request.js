@@ -27,7 +27,7 @@ const URL = {
   GET_NOTEBOOKS_ID: '/notes/from/:notebookId',
   // 把笔记id 为 :noteId 的笔记放入回收站DELETE
   DELETE_NOTEBOOKS: '/notes/:noteId',
-  // 把笔记id 为 :noteId 的笔记放入回收站PATCH
+  // 把笔记id 为 :noteId 的笔记修改
   DELETE_NOTEBOOKS_PATCH: '/notes/:noteId',
   // 把笔记id 为 :noteId 的笔记从回收站彻底删除DELETE
   CONFIRM_DELETE_NOTEBOOKS: '/notes/:noteId/confirm',
@@ -58,7 +58,7 @@ export default {
           if (response.status === 200) {
             resolve(response.data)
           } else {
-            Message.error('用户不存在')
+            Message.error(response.data.msg)
             reject(response.data)
           }
         }).catch(err => {
@@ -83,33 +83,50 @@ export default {
     return this.request(URL.LOGIN, 'POST', { username, password })
   },
   getNoteBooks () {
-    return this.request(URL.GET_NOTEBOOKS, 'GET')
+    return new Promise((resolve, reject) => {
+      this.request(URL.GET_NOTEBOOKS, 'GET')
+        .then(res => {
+          res.data = res.data.sort((a, b) => a.createdAt < b.createdAt ? 1 : -1)
+          resolve(res)
+        }).catch(err => {
+          reject(err)
+        })
+    })
   },
-  create ({ title = '' }) {
+  create ({ title = '' } = { title: '' }) {
     return this.request(URL.CREATE, 'POST', { title })
   },
-  update ({ notebookId }, { title }) {
+  update (notebookId, { title = '' } = { title: '' }) {
     return this.request(URL.UPDATE.replace(':notebookId', notebookId), 'PATCH', { title })
   },
-  delete ({ notebookId }) {
+  delete (notebookId) {
     return this.request(URL.DELETE.replace(':notebookId', notebookId), 'DELETE')
   },
-  createNotebooks ({ notebookId }, { title, content } = { title: '', content: '' }) {
+  createNotebooks ({ notebookId }, { title = '', content = '' } = { title: '默认标题', content: '' }) {
     return this.request(URL.CREATE_NOTEBOOKS.replace(':notebookId', notebookId), 'POST', { title, content })
   },
   getNotebooksId ({ notebookId }) {
-    return this.request(URL.GET_NOTEBOOKS_ID.replace(':notebookId', notebookId), 'GET')
+    return new Promise((resolve, reject) => {
+      this.request(URL.GET_NOTEBOOKS_ID.replace(':notebookId', notebookId), 'GET')
+        .then(res => {
+          res.data = res.data.sort((a, b) => a.updatedAt < b.updatedAt ? 1 : -1)
+          // console.log(res)
+          resolve(res)
+        }).catch(err => {
+          reject(err)
+        })
+    })
   },
-  deleteNotebooks ({ notebookId }) {
-    return this.request(URL.DELETE_NOTEBOOKS.replace(':notebookId', notebookId), 'DELETE')
+  deleteNotebooks (noteId) {
+    return this.request(URL.DELETE_NOTEBOOKS.replace(':noteId', noteId), 'DELETE')
   },
-  deleteNotebooksPatch ({ noteId }, { title, content } = { title: '', content: '' }) {
+  updateNotebooks ({ noteId }, { title, content }) {
     return this.request(URL.DELETE_NOTEBOOKS_PATCH.replace(':noteId', noteId), 'PATCH', { title, content })
   },
-  confirmDeleteNotebooks ({ noteId }) {
+  confirmDeleteNotebooks (noteId) {
     return this.request(URL.CONFIRM_DELETE_NOTEBOOKS.replace(':nodeId', noteId), 'DELETE')
   },
-  revertNoteBooks ({ noteId }) {
+  revertNoteBooks (noteId) {
     return this.request(URL.REVERT_NOTEBOOKS.replace(':noteId', noteId), 'PATCH')
   },
   getNoteBooksTrash () {

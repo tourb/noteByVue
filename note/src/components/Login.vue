@@ -62,6 +62,7 @@
 </template>
 <script>
 import request from '@/helpers/request.js'
+import Bus from '@/helpers/bus.js'
 export default {
   name: 'Login',
   data () {
@@ -139,14 +140,14 @@ export default {
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
           try {
-            let res = await request.register({ username: this.register.username, password: this.register.password })
+            await request.register({ username: this.register.username, password: this.register.password })
             this.$message({
               message: '注册成功',
               type: 'success'
             })
-            console.log(res)
           } catch (err) {
-            console.log(err)
+            this.register.notice = err.msg
+            this.register.isError = true
           }
         } else {
           this.$message({
@@ -162,14 +163,19 @@ export default {
       this.$refs[formNameLogin].validate(async (valid) => {
         if (valid) {
           try {
-            let res = await request.login({ username: this.login.username, password: this.login.password })
+            await request.login({ username: this.login.username, password: this.login.password })
             this.$message({
               message: '登录成功',
               type: 'success'
             })
-            console.log(res)
-          } catch (err) {
-            console.log(err)
+            this.login.isError = false
+            this.login.notice = ''
+            // 调用bus实例传递两个不相关的数据
+            Bus.$emit('userInfo', { username: this.login.username })
+            this.$router.push('/notebooks')
+          } catch (data) {
+            this.login.isError = true
+            this.login.notice = data.msg
           }
         } else {
           this.$message({

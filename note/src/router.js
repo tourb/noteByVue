@@ -15,11 +15,11 @@ export default new Router({
       component: () => import('./components/NotebookList')
     },
     {
-      path: '/note/:noteId',
+      path: '/note',
       component: () => import('./components/NoteDetail')
     },
     {
-      path: '/trash/:noteId',
+      path: '/trash',
       component: () => import('./components/TashDetail')
     }
   ]
